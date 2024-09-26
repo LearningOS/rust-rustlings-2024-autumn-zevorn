@@ -2,7 +2,6 @@
 	double linked list reverse
 	This problem requires you to reverse a doubly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -72,9 +71,56 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn reverse(&mut self){
-		// TODO
-	}
+
+    /// 反转列表的方向。
+    /// 此方法会交换列表的 `start` 和 `end` 指针，使原来的 `start` 成为 `end`，反之亦然。
+    /// 同时，它会反转每个节点的 `next` 和 `prev` 指针，以确保反转后的列表结构正确。
+    pub fn reverse(&mut self) {
+        // 保存原始的起始节点，用于反转后赋值给结束节点
+        let d = self.start;
+        // 将原始结束节点的 prev 指针设为 None，准备进行反转
+        let mut a = unsafe { (*self.end.unwrap().as_ptr()).prev };
+        unsafe { (*self.end.unwrap().as_ptr()).prev = None; }
+        // 保存原始的结束节点，用于遍历并反转节点
+        let mut b = self.end;
+        // 从结束节点开始遍历，反转每个节点的指针
+        while let Some(ptr) = b {
+            if a == self.start {
+                // 当遍历到达原始起始节点时，更新其 next 指针到原始结束节点
+                unsafe {
+                    (*ptr.as_ptr()).next = a;
+                    // 原始起始节点的 prev 指针指向原始结束节点，并将其 next 指针设为 None
+                    unsafe {
+                        (*a.unwrap().as_ptr()).prev = b;
+                        (*a.unwrap().as_ptr()).next = None;
+                        break;
+                    }
+                }
+            } else {
+                // 对其他节点，更新它们的 next 指针到前一个节点，并调整 prev 指针
+                unsafe {
+                    (*ptr.as_ptr()).next = a;
+                }
+                // 临时存储前一个节点
+                let tmp = a;
+                // 移动 a 指向前一个节点之前的节点
+                a = unsafe {
+                    (*a.unwrap().as_ptr()).prev
+                };
+                // 更新临时存储节点的 prev 指针到当前节点，准备下一轮反转
+                unsafe {
+                    (*tmp.unwrap().as_ptr()).prev = b;
+                }
+                // 移动 b 到临时存储节点，准备下一轮遍历
+                b = tmp;
+            }
+        }
+
+        // 在整个列表反转完成后，更新起始和结束节点
+        self.start = self.end;
+        self.end = d;
+    }
+
 }
 
 impl<T> Display for LinkedList<T>
