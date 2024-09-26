@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -23,19 +22,28 @@ impl<T> Node<T> {
     }
 }
 #[derive(Debug)]
-struct LinkedList<T> {
-    length: u32,
-    start: Option<NonNull<Node<T>>>,
-    end: Option<NonNull<Node<T>>>,
+struct LinkedList<T>
+        where
+            T: PartialOrd+Clone,
+{
+        length: u32,
+        start: Option<NonNull<Node<T>>>,
+        end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
-    fn default() -> Self {
-        Self::new()
-    }
+impl<T> Default for LinkedList<T>
+        where
+            T: PartialOrd+Clone,
+{
+        fn default() -> Self {
+                Self::new()
+        }
 }
 
-impl<T> LinkedList<T> {
+impl<T> LinkedList<T>
+        where
+            T: PartialOrd+Clone,
+{
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,20 +77,45 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self
+            where T:PartialOrd+ PartialEq,
+    {
+        let mut merged = Self::new();
+        let mut ptr_a = list_a.start;
+        let mut ptr_b = list_b.start;
+
+        while ptr_a.is_some() && ptr_b.is_some() {
+            let a_val = unsafe { &(*ptr_a.unwrap().as_ptr()).val };
+            let b_val = unsafe { &(*ptr_b.unwrap().as_ptr()).val };
+
+            if a_val <= b_val {
+                merged.add(a_val.clone());
+                ptr_a = unsafe{ (*ptr_a.unwrap().as_ptr()).next };
+
+            } else {
+                merged.add(b_val.clone());
+                ptr_b = unsafe{(*ptr_b.unwrap().as_ptr()).next};
+            }
         }
-	}
+
+        while let  Some(ptr)= ptr_a{
+            let a_val =  unsafe { &(*ptr.as_ptr()).val };
+            merged.add(a_val.clone());
+            ptr_a = unsafe { (*ptr.as_ptr()).next };
+        }
+
+        while let Some (ptr)= ptr_b{
+            let b_val = unsafe{&(*ptr.as_ptr()).val};
+            merged.add(b_val.clone());
+            ptr_b = unsafe{(*ptr.as_ptr()).next}
+        }
+        merged
+    }
 }
 
 impl<T> Display for LinkedList<T>
 where
-    T: Display,
+    T: Display + PartialOrd+Clone,
 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self.start {
